@@ -165,6 +165,7 @@ def train_snn(model, train_loader, criterion, optimizer, epoch, T=50, data_gen_f
         # move data to GPU
         data, target = data.to(device), target.to(device)
         target_onehot = F.one_hot(target, 10).float() # convert to one-hot to match requirement for MSE loss
+        # target_onehot = target
         spike_data = data_gen_fn(data, T)
         output_fr = model(spike_data)
         # compute the loss
@@ -216,9 +217,9 @@ def test_snn(model, test_loader, criterion, T=50, data_gen_fn=gen_spike_data_ber
     return accuracy, test_loss
 
 
-def train_eval(model, train_loader, test_loader, epochs, T, data_gen_fn):
-    # criterion = nn.MSELoss()
-    criterion = nn.CrossEntropyLoss()
+def train_eval(model, train_loader, test_loader, epochs, T, data_gen_fn=gen_spike_data_bernoulli):
+    criterion = nn.MSELoss()
+    # criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr=0.001)
     # reinit model, we can create optimizer and criterion here
     train_losses_snn = []
@@ -266,7 +267,7 @@ def create_model(exp_name, hyperparam):
     return model, T
 
 
-def run_trial(exp_name, hyperparam_list, train_loader, test_loader, data_gen_fns, data_gen_names):
+def run_trial(exp_name, hyperparam_list, train_loader, test_loader, data_gen_fns=[gen_spike_data_bernoulli], data_gen_names=['bernoulli']):
     df_results = pd.DataFrame(columns=['data_gen', 'hyperparam', 'train_losses', 'test_losses', 'test_accuracies'])
     epochs = 10
     for data_gen_fn, data_gen_name in zip(data_gen_fns, data_gen_names):
@@ -305,7 +306,7 @@ def T_tuning():
 
 
 def thresh_tuning():
-    threshold_values = [0.5, 0.75, 1.0, 1.25, 1.5]
+    threshold_values = [0.5, 1.0, 1.5, 2.0, 4.0]
     train_loader, test_loader = get_dataloaders()
     exp_name = "threshold"
     run_trial(exp_name, threshold_values, train_loader, test_loader)
@@ -314,7 +315,8 @@ def thresh_tuning():
 def custom_build():
     exp_name = "custom"
     train_loader, test_loader = get_dataloaders()
-    run_trial(exp_name, [1], train_loader, test_loader)
+    hyperparam_list = [1] # just to ensure we enter the for-loop
+    run_trial(exp_name, hyperparam_list, train_loader, test_loader)
 
 
 def data_gen_trial():
@@ -329,14 +331,14 @@ def thresh_new():
     threshold_values = [3.0, 4.0, 5.0]
     train_loader, test_loader = get_dataloaders()
     exp_name = "threshold"
-    data_gen_fns = [gen_spike_data_bernoulli]
-    data_gen_names = ["bernoulli"]
-    run_trial(exp_name, threshold_values, train_loader, test_loader, data_gen_fns, data_gen_names)
+    run_trial(exp_name, threshold_values, train_loader, test_loader)
 
 
 
 if __name__ == "__main__":
-    thresh_new()
+    custom_build()
+    # data_gen_trial()
+    # thresh_new()
     # T_tuning()
     # thresh_tuning()
     # beta_tuning()
