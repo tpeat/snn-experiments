@@ -9,3 +9,5 @@ firing threshold (Vth) which determines when a neuron spikes; and the leakage
 factor (β), which represents the decay rate of the membrane potential. For each
 hyperparameter experiment, we trained the SNN for 10 epochs, initializing each
 model with the same random seed to ensure reproducibility.
+
+For full scope of the experiments, read more [here](report_tristan_peat.pdf)
